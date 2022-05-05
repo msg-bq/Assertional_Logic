@@ -1,9 +1,9 @@
 # Assertional_Logic
  提供了支持断言逻辑的推理引擎实现。
  推理引擎使用experta作为基础，其对应的document见[此处](https://experta.readthedocs.io/en/latest/thebasics.html)
- 
+
  包括Individual, Concept, Operator, Term, Assertion，其中Term约定为仅包括op(C1, C2...)的形式
- 
+
  样例中给出了使用方法(在examples文件夹内有[完整代码文件](/examples/Pokemon.py)，大家也可以再补几个例子)，
  下面是精简版：
  ```python
@@ -40,15 +40,15 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
         pass #初始血量各100
 
     @Rule(AS.round << Round(Round=W(), Pokemon='Pikachu'), salience=0) #规则1
-    #另外注意一点，如果规则4使用了salience，那么规则1也必须给出salience，原因目前不明。理论上默认是0的样子
     def rule1(self, round, snorlax, pikaqiu):
         pass
 
     @Rule(AS.round << Round(Round=W(), Pokemon='Snorlax'),
           TEST(lambda snorlax: snorlax.GetRHS().value <= 100),
           salience=0) #规则2
-    @Rule(TEST(lambda snorlax: snorlax.GetRHS().value > 100))# 规则3
-    @Rule(TEST(lambda final: final.LHS.operator==PHOperator and final.RHS.value==0), salience=1) #规则4
+    @Rule(TEST(lambda snorlax: snorlax.GetRHS().value > 100), salience=0)# 规则3
+    @Rule(TEST(lambda final: final.LHS.operator==PHOperator and final.RHS.value==0), 
+          salience=1) #规则4
 
 engine = Pikachu_VS_Snorlax_System()
 engine.reset()
@@ -75,7 +75,7 @@ engine.run()
 #Pikachu失去战斗能力，Snorlax获胜!
 #回合结束
 #--------------------
-```
+ ```
 
 **TODO**:
 - [ ] 支持对断言相关类的嵌套匹配(其他的嵌套匹配不影响，具体使用查看experta的document)，目前嵌套匹配的需求需要自己写一两行TEST来实现。
