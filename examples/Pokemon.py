@@ -77,7 +77,7 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
                                            variables=['Pikachu']),
                                   RHS=W()),
           salience=0) #规则1
-    #另外注意一点，如果规则4使用了salience，那么规则1也必须给出salience，原因目前不明。理论上默认是0的样子
+    #另外注意一点，如果规则4使用了salience，那么规则1也必须给出salience，原因可能是：同时被触发的规则需要同时给出salience。理论上默认是0的样子
     def rule1(self, round, snorlax, pikaqiu):
         print("第{Round}轮，{Pokemon}出招".format(**round))
         Move = 'Thunderbolt'
