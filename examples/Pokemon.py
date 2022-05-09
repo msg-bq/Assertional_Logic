@@ -146,6 +146,20 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
         self.terminate_round(round)
         print("--------------------")
 
+    @Rule(AS.round << Round(Round=W(), Pokemon=W()),
+          AS.final << Assertion(LHS__operator=PHOperator,
+                                RHS__value=0),
+          salience=0.8)#其实就是rule4，我就是展示一下嵌套匹配。我让这个的salience高于上一条@Rule了，执行它那就说明等价
+    def rule5(self, round, final):
+        print("嵌套匹配√")
+        Participates = list(round['Participates'])
+        Participates.remove(round['Pokemon'])
+        opposite = Participates[0]
+        print("{}失去战斗能力，{}获胜!".format(round['Pokemon'], opposite))
+
+        self.terminate_round(round)
+        print("--------------------")
+        
 engine = Pikachu_VS_Snorlax_System()
 engine.reset()
 engine.declare(Round(Round=1 ,Pokemon='Pikachu', Participates=('Pikachu', 'Snorlax')))
