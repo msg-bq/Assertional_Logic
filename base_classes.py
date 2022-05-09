@@ -132,6 +132,9 @@ class BaseIndividual(object):
     def __hash__(self):
         return self.GetHash().__hash__()
 
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
 class BaseConcept(object):
 
     def __init__(self, name, comments='null', *args, **kwargs):
@@ -280,6 +283,8 @@ class Term(object):
     def __eq__(self, other):
         return type(self) is type(other) and self.GetHash() == other.GetHash()
 
+    def __getitem__(self, item):
+        return self.__dict__[item]
 
 class Assertion(Fact):
     def __init__(self, LHS='null', RHS='null', comments='null', *args, **kwargs):

@@ -1,4 +1,11 @@
 # Assertional_Logic
+ \-----------------------
+ 
+ Update 2022.5.10:
+ 新增对断言相关类嵌套查询的支持，见新添加的[rule5](/examples/Pokemon.py#L149)
+ 
+ \-----------------------
+ 
  提供了支持断言逻辑的推理引擎实现。
  推理引擎使用experta作为基础，其对应的document见[此处](https://experta.readthedocs.io/en/latest/thebasics.html)
 
@@ -47,8 +54,7 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
           TEST(lambda snorlax: snorlax.GetRHS().value <= 100),
           salience=0) #规则2
     @Rule(TEST(lambda snorlax: snorlax.GetRHS().value > 100), salience=0)# 规则3
-    @Rule(TEST(lambda final: final.LHS.operator==PHOperator and final.RHS.value==0), 
-          salience=1) #规则4
+    @Rule(Assertion(LHS__operator=PHOperator, RHS__value=0), salience=1) #规则4
 
 engine = Pikachu_VS_Snorlax_System()
 engine.reset()
@@ -78,7 +84,7 @@ engine.run()
  ```
 
 **TODO**:
-- [ ] 支持对断言相关类的嵌套匹配(其他的嵌套匹配不影响，具体使用查看experta的document)，目前嵌套匹配的需求需要自己写一两行TEST来实现。
+- [X] 支持对断言相关类的嵌套匹配(其他的嵌套匹配不影响，具体使用查看experta的document)，目前嵌套匹配的需求需要自己写一两行TEST来实现。
 继承dict类会有奇怪的bug，所以暂时不支持。
 - [ ] 待支持&, |, ~, 这个暂时手动TEST一下吧，直接用python的&, |, 和not即可代替。
 - [ ] 待支持L()和P()，因为L是默认调用，无所谓是否显式地支持。然后P()应该只是TEST的简略写法，而TEST是可以正常使用的。
