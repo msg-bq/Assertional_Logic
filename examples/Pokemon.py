@@ -1,5 +1,6 @@
 from experta import *
 from Assertional_Logic import *
+from itertools import chain
 
 class Round(Fact):
     pass
@@ -38,6 +39,9 @@ PHOperator = BaseOperator(name='PHOperator',
                           outputName='PH',
                           func=None)
 
+Q1 = Question(LHS__operator=PHOperator,
+              LHS__variables__0__value=MATCH.Q_pokemon,
+              RHS__value=MATCH.Q_hp)
 class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
     '''
     这个显然不算是正经推理，不过它可以和正经推理一样地展示使用方法，我觉得还是够了的~
@@ -45,9 +49,10 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
     1. 在皮卡丘的回合，它一定会使用十万伏特
     2. 在卡比兽的回合，<=100血会使用睡觉
     3. 在卡比兽的回合，>100血会使用泰山压顶
-    4. 一方血量为0将结束对战，默认不出现同0的情况
+    4/5. 一方血量为0将结束对战，默认不出现同0的情况，此规则被重复实现，用于表示不同的使用方法
     （招式，包括睡觉，都是当回合结算）
-
+    6. 当对局完全结束后，输出仍在场上的神奇宝贝及对应血量，使用提问(class Question)获取。
+    即此规则等价于如何查询"最后还在场上的宝可梦是谁？血量多少？"
     '''
 
     def update_round(self, round):
@@ -135,8 +140,9 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
     @Rule(AS.round << Round(Round=W(), Pokemon=W()),
           AS.final << Assertion(LHS=W(),
                                 RHS=W()),
-          TEST(lambda final: final.LHS.operator==PHOperator and final.RHS.value==0),
-          salience=1) #规则4
+          TEST(lambda final: final.LHS.operator==PHOperator and final.RHS.value==0
+               if isinstance(final, Assertion) else False),
+          salience=0.7) #规则4
     def rule4(self, round, final):
         Participates = list(round['Participates'])
         Participates.remove(round['Pokemon'])
@@ -149,7 +155,7 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
     @Rule(AS.round << Round(Round=W(), Pokemon=W()),
           AS.final << Assertion(LHS__operator=PHOperator,
                                 RHS__value=0),
-          salience=0.8)#其实就是rule4，我就是展示一下嵌套匹配。我让这个的salience高于上一条@Rule了，执行它那就说明等价
+          salience=0.9)#其实就是rule4，我就是展示一下嵌套匹配。我让这个的salience高于上一条@Rule了，执行它那就说明等价
     def rule5(self, round, final):
         print("嵌套匹配√")
         Participates = list(round['Participates'])
@@ -159,8 +165,17 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
 
         self.terminate_round(round)
         print("--------------------")
-        
+
+    @Rule(NOT(Round()),
+          Assertion(**Q1),
+          TEST(lambda Q_hp: Q_hp is not None and Q_hp > 0))
+    def rule6(self, *args, **kwargs):
+        match_vars = dict(chain(enumerate(args), kwargs.items()))
+        questions = {k[2:]:v for k, v in match_vars.items() if k.startswith('Q_')}
+        print("最后在场的宝可梦是{pokemon}，剩余HP为{hp}".format(**questions))
+        print("--------------------")
+
 engine = Pikachu_VS_Snorlax_System()
 engine.reset()
-engine.declare(Round(Round=1 ,Pokemon='Pikachu', Participates=('Pikachu', 'Snorlax')))
+engine.declare(Round(Round=1, Pokemon='Pikachu', Participates=('Pikachu', 'Snorlax')))
 engine.run()

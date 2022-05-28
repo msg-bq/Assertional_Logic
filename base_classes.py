@@ -12,7 +12,7 @@ class DuplicateError(Exception):
 def create_individual_concept(class_name, parent_classes='Base', val_dict={}):
     '''
     :param class_name: 新类的名字
-    :param parent_classes: 要继承的类，默认Base
+    :param parent_classes: 要继承的类，默认Base。否则应当输入需要继承的Concept的名字，如['INT', 'PERSON']
     :param val_dict: emm...我暂时没有用途，先留着。
     :return: individual和concept的类
     '''
@@ -25,8 +25,11 @@ def create_individual_concept(class_name, parent_classes='Base', val_dict={}):
         individual_class = type(class_name, (BaseIndividual,), {'name': class_name + 'Individual', **val_dict})
         concept_class = type(class_name, (BaseConcept,), {'name': class_name + 'Concept', **val_dict})
     else:
-        individual_class = type(class_name, parent_classes, {'name': class_name + 'Individual', **val_dict})
-        concept_class = type(class_name, parent_classes, {'name': class_name + 'Concept', **val_dict})
+        parent_individual = tuple(Declared_Concepts_Individuals[name + 'Individual'] for name in parent_classes)
+        parent_concept = tuple(Declared_Concepts_Individuals[name + 'Concept'] for name in parent_classes)
+
+        individual_class = type(class_name, parent_individual, {'name': class_name + 'Individual', **val_dict})
+        concept_class = type(class_name, parent_concept, {'name': class_name + 'Concept', **val_dict})
 
     Declared_Concepts_Individuals[class_name + 'Individual'] = individual_class
     Declared_Concepts_Individuals[class_name + 'Concept'] = concept_class
@@ -325,8 +328,10 @@ class Assertion(Fact):
         var_dict.update(self.__dict__)
         if self.LHS == 'null':
             del var_dict['LHS']
+        if self.RHS == 'null':
             del var_dict['RHS']
         var_dict['comments'] = self.comments
+        self.var_dict = var_dict
         return var_dict
 
     def __getattribute__(self, attr):
@@ -335,20 +340,35 @@ class Assertion(Fact):
         return super(Assertion, self).__getattribute__(attr)
 
     def GetHash(self):
-        var_dict = {}
-        var_dict['LHS'] = self.LHS.GetHash() if self.LHS != 'null' else 'null'
-        var_dict['RHS'] = self.RHS.GetHash() if self.RHS != 'null' else 'null'
+        # return Fact(**self.var_dict)
+        var_dict = {k:v for k, v in self.items() if not k.startswith('__')}
+        if self.LHS != 'null' and not isinstance(self.LHS, W):
+            var_dict['LHS'] = self.LHS.GetHash()
+        else:
+            var_dict['LHS'] = self.LHS
+
+        if self.RHS != 'null' and not isinstance(self.RHS, W):
+            var_dict['RHS'] = self.RHS.GetHash()
+        else:
+            var_dict['RHS'] = self.RHS
 
         # so，根据目前的匹配机制，Assertion(4 = Term(2+2))与 Assertion(4 = 4)并不认为是一样的。同样的，有需要的话这里是可以放宽的。
         return Fact(**var_dict)
 
     def __eq__(self, other):
-        var_dict = {}
-
-        var_dict['LHS'] = self.LHS.GetHash() if self.LHS != 'null' else 'null'
-        var_dict['RHS'] = self.RHS.GetHash() if self.RHS != 'null' else 'null'
-
         return type(self) is type(other) and self.GetHash() == other.GetHash()
 
     def __hash__(self):
         return self.GetHash().__hash__()
+
+    def __repr__(self):
+        # for key in self.var_dict:
+        #     if hasattr(self.var_dict[key], 'GetHash'):
+        #         self.var_dict[key] = self.var_dict[key].GetHash()
+        return str(self.GetHash())
+
+    def __str__(self):
+        return self.__repr__()
+
+class Question(Fact):
+    pass
