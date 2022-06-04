@@ -39,9 +39,13 @@ PHOperator = BaseOperator(name='PHOperator',
                           outputName='PH',
                           func=None)
 
-Q1 = Question(LHS__operator=PHOperator,
-              LHS__variables__0__value=MATCH.Q_pokemon,
-              RHS__value=MATCH.Q_hp)
+Q1 = Assertion(LHS__operator=PHOperator,
+               LHS__variables__0__value=MATCH.Q_pokemon,
+               RHS__value=MATCH.Q_hp)
+
+QUESTION_DICT['Q1'] = {}
+Q2 = Question(name='Q1')
+
 class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
     '''
     这个显然不算是正经推理，不过它可以和正经推理一样地展示使用方法，我觉得还是够了的~
@@ -168,12 +172,27 @@ class Pikachu_VS_Snorlax_System(KnowledgeEngine): #Snorlax卡比兽
 
     @Rule(NOT(Round()),
           Assertion(**Q1),
-          TEST(lambda Q_hp: Q_hp is not None and Q_hp > 0))
+          TEST(lambda Q_hp: Q_hp is not None and Q_hp > 0),
+          salience=0.7)
     def rule6(self, *args, **kwargs):
+        match_vars = dict(chain(enumerate(args), kwargs.items()))
+        questions = {k[2:]: v for k, v in match_vars.items() if k.startswith('Q_')}
+        print("最后在场的宝可梦是{pokemon}，剩余HP为{hp}".format(**questions))
+        print("--------------------")
+
+    @Rule(NOT(Round()),
+          AS.Question << Q2,
+          TEST(lambda Q_hp: Q_hp is not None and Q_hp > 0),
+          salience=1)
+    def rule7(self, Question, *args, **kwargs):
+        print("rule7生效")
         match_vars = dict(chain(enumerate(args), kwargs.items()))
         questions = {k[2:]:v for k, v in match_vars.items() if k.startswith('Q_')}
         print("最后在场的宝可梦是{pokemon}，剩余HP为{hp}".format(**questions))
+        self.retract(Question) #可正常执行，Question捕获正常
         print("--------------------")
+
+QUESTION_DICT['Q1'] = Q1
 
 engine = Pikachu_VS_Snorlax_System()
 engine.reset()
