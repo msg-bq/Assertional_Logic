@@ -1,5 +1,19 @@
 # Assertional_Logic
   \-----------------------
+  
+  Update 2022.6.4
+  
+  由于python的特性，上次的更新仅允许在定义推理系统这个class之前提供所需的一切参数，不利于代码的整齐和带来使用上的不便，自动化时可能需要借助eval。
+  
+  在这一版更新中，提供了全局变量QUESTION_DICT，使用见[rule7](/examples/Pokemon.py#L183)。将不能事先定义的变量存入QUESTION_DICT中，并将
+  对应的key作为Question类实例化的name传入即可（可以看到，Q2的值在KnowledgeEngine定义时Q1只是空字典，而在定义class后的195行才给了具体值）
+  
+  需要指出的是，rule6和rule7由于前提蕴含（实则一致），不能同时存在。如果想同时存在做实验，那就是个概率问题，出现报错时重新执行几次程序，直至无报错即可。
+  
+  此外，这部分修改需要调整experta内的代码，所以我同步上传了experta.zip，解压后替换掉site-packages文件夹内的对应文件夹即可
+  
+  \-----------------------
+  
   Update 2022.5.22
   1. 修复了已知bug
   2. 在example中给出了查询结果的建议写法，见[rule6](/examples/Pokemon.py#L169)。由于我感觉询问的需求

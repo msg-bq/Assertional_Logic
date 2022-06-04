@@ -370,5 +370,5 @@ class Assertion(Fact):
     def __str__(self):
         return self.__repr__()
 
-class Question(Fact):
-    pass
+# class Question(Fact):
+#     pass
